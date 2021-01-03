@@ -25,13 +25,21 @@ func loadPage(title string) (*Page, error){
 	return &Page{Title: title, Body: body}, nil
 }
 
-var templates = template.Must(template.ParseFiles("edit.html", "view.html"))
+var templates = template.Must(template.ParseFiles("todo.html", "edit.html", "view.html"))
 
 func renderTemplate(w http.ResponseWriter, tmpl string, p *Page){
 	// t, _ := template.ParseFiles(tmpl + ".html")
 	// t.Execute(w, p)
 	err := templates.ExecuteTemplate(w, tmpl+".html", p)
 	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
+}
+
+func todoHandler(w http.ResponseWriter, r *http.Request){
+	t := template.Must(template.ParseFiles("todo.html"))
+	str := "Sample Message"
+	if err := t.ExecuteTemplate(w, "todo.html", str); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 }
@@ -80,6 +88,7 @@ func makeHandler(fn func(http.ResponseWriter, *http.Request, string)) http.Handl
 }
 
 func main() {
+	http.HandleFunc("/todo",  todoHandler)
 	http.HandleFunc("/view/", makeHandler(viewHandler))
 	http.HandleFunc("/edit/", makeHandler(editHandler))
 	http.HandleFunc("/save/", makeHandler(saveHandler))
